@@ -20,10 +20,10 @@ const getVideoUrl = async (url) => {
     await page.goto("https://" + url.replace('"', ""), {
       waitUntil: 'networkidle0',
     });
-    await page.waitFor(2000);
-    await page.waitForNavigation({
-      waitUntil: 'networkidle0',
-    });
+    await page.waitFor(200);
+    // await page.waitForNavigation({
+    //   waitUntil: 'networkidle0',
+    // });
 
 
     let html = await page.content();
