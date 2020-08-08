@@ -23,7 +23,8 @@ const getVideoUrl = async (url) => {
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
-    console.log("====================================");
+    console.log("========================================");
+    //
 
     let x = document.querySelector(
       "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
