@@ -17,7 +17,14 @@ const getVideoUrl = async (url) => {
       '--disable-setuid-sandbox',
     ],headless: true});
     const page = await browser.newPage();
-    await page.goto("https://" + url.replace('"', ""));
+    await page.goto("https://" + url.replace('"', ""), {
+      waitUntil: 'networkidle0',
+    });
+    await page.waitFor(2000);
+    await page.waitForNavigation({
+      waitUntil: 'networkidle0',
+    });
+
 
     let html = await page.content();
     const dom = new JSDOM(html);
