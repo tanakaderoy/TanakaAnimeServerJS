@@ -52,7 +52,7 @@ module.exports.getVideo = (req,res) => {
         return res.json({ msg: "Success", video: x.src });
       })
       .catch(x => {
-        res.status(400).json({ error: x });
+        res.status(400).json({ers:"You got an error", error: x });
       });
   });
 };
