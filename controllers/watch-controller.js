@@ -12,7 +12,10 @@ const getVideoUrl = async (url) => {
     
   if (trackingUrl !== url  || cache.video.src === "") {
     trackingUrl = url;
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({  args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+    ],});
     const page = await browser.newPage();
     await page.goto("https://" + url.replace('"', ""));
 
