@@ -25,12 +25,13 @@ const getVideoUrl = async (url) => {
 
     console.log(document)
 
-    console.log(page.content())
+    console.log(await page.content())
     //
     
     let x = document.querySelector(
       "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
       );
+      console.log(x);
       
       let videoURL = x.attributes.getNamedItem("src").textContent; //document.querySelector("body > div.ui-page.ui-page-theme-a.ui-page-active > div.main.ui-content > div:nth-child(3) > div > div > iframe").attributes.getNamedItem("src").textContent
       console.log(videoURL);
