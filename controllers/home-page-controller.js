@@ -32,7 +32,7 @@ const getTrending = async url => {
     let showsArr = Array.from(
       document.querySelectorAll(LATEST_EPISODES_SELECTOR)
     );
-    showsArr.length = 50;
+    showsArr.length = 100
     let shows = showsArr.map(show => {
       let img = BASE_URL + getDataSrcText(show, IMG_SELECTOR);
       let showURL = BASE_URL + getHref(show, SHOW_URL_SELEECTOR);

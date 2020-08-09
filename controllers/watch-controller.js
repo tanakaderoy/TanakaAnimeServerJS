@@ -17,28 +17,18 @@ const getVideoUrl = async (url) => {
       '--disable-setuid-sandbox',
     ],headless: true});
     const page = await browser.newPage();
-    await page.goto("https://" + url.replace('"', ""), {
-      waitUntil: 'networkidle0',
-    });
-    await page.waitFor(200);
-    // await page.waitForNavigation({
-    //   waitUntil: 'networkidle0',
-    // });
+    await page.goto("https://" + url.replace('"', ""));
 
 
     let html = await page.content();
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
-    console.log(document)
-
-    console.log(await page.content())
     //
     
     let x = document.querySelector(
       "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
       );
-      console.log(x);
       
       let videoURL = x.attributes.getNamedItem("src").textContent; //document.querySelector("body > div.ui-page.ui-page-theme-a.ui-page-active > div.main.ui-content > div:nth-child(3) > div > div > iframe").attributes.getNamedItem("src").textContent
       console.log(videoURL);
