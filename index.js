@@ -30,5 +30,7 @@ app.get("/timeStamp", (req, res) => {
 app.listen(port, () => {
   console.log(`HomePage Shows available http://localhost:${port}/shows/home`);
   console.log(`Watch an episode at http://localhost:${port}/shows/watch`);
+  console.log(`Search For Shows at http://localhost:${port}/shows/search`);
+
   console.log("listenting to port: ", port);
 });

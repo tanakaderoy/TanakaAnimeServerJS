@@ -19,7 +19,6 @@ var counter = 0;
 let trackedUel  = ""
 
 const getSearchResults = async query => {
-  if (showCache.shows.length <= 0) {
       trackedUel = query
     const res = await instance.get(BASE_URL + "/search/?key=" + query);
     const html = res.data;
@@ -32,27 +31,25 @@ const getSearchResults = async query => {
       )
     );
     let shows = results.map(r => {
-      let poster = r.querySelector("center > img").getAttribute("data-src");
+      let poster = BASE_URL+r.querySelector("center > img").getAttribute("data-src");
       let releaseYear = r.querySelector("div [class='col-xs-8'] > span > b").textContent;
       let subtitle = r.querySelector("div.ongoingtitle > h4  > small")
         .textContent;
       let title = r.querySelector("div.ongoingtitle > h4 > b").textContent;
-      let link = r.querySelector("a").getAttribute("href");
+      let link = BASE_URL+r.querySelector("a").getAttribute("href");
       return new SearchResult(poster, releaseYear, subtitle, title, link);
     });
     showCache.shows = shows;
     return showCache.shows;
-  }
-  return showCache.shows;
 };
 
 const peformSearch = async (req, res) => {
     
-  let { query } = req.body;
+  let { query } = req.query;
   showCache.shows = query === trackedUel ? [] : showCache.shows
   let shows = await Promise.all([getSearchResults(query)]);
   let searchResults = shows[0];
-  res.json({ searchResults });
+  res.json(searchResults );
 };
 
 module.exports = {
