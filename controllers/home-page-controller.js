@@ -75,6 +75,8 @@ const select = (doc, selector) =>
   const getHomePageShows = async (req, res) => {
     let shows = await Promise.all([getTrending(BASE_URL)]);
     let latestShows = shows[0];
+    let topShow = latestShows[0]
+    console.log(topShow)
     res.json({ latestShows });
   };
   

@@ -49,6 +49,7 @@ const peformSearch = async (req, res) => {
   showCache.shows = query === trackedUel ? [] : showCache.shows
   let shows = await Promise.all([getSearchResults(query)]);
   let searchResults = shows[0];
+  console.log(searchResults);
   res.json(searchResults );
 };
 

@@ -8,6 +8,7 @@ var trackingUrl = "";
 var cache = { };
 
 const getVideoUrl = async url => {
+try {
   console.log(`Searching for ${url} in cache`);
 
   if (cache[url] === undefined) {
@@ -32,7 +33,32 @@ console.log('not in cache');
     let x = document.querySelector(
       "#videowrapper_gvideo > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
     );
-    if (x === null) {
+    console.log("x should go to Video \n" , x)
+if(x === null || x===undefined){
+  x = document.querySelector("#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source")
+}
+    
+    if (x === null || x === undefined) {
+      try {
+          await page.click("[href*='#gounlimited']");
+
+      dom = new JSDOM(await page.content());
+      document = dom.window.document;
+      // x = document.querySelector("div#videowrapper_gounlimited > iframe");
+      let gounl = BASE_URL+document.querySelector("div#videowrapper_gounlimited > iframe").src;
+      await page.goto(gounl)
+      await page.waitFor(100)
+      dom = new JSDOM(await page.content());
+      document = dom.window.document;
+      x = document.querySelector("#vjsplayer_html5_api")
+      await page.screenshot({ path: "screnshot.png" });
+      } catch (error) {
+        console.error(error)
+      }
+    
+    }
+console.log("x should go to Go \n" , x)
+    if (x === null || x ===undefined) {
 
       x = document.querySelector(
         "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
@@ -55,23 +81,10 @@ console.log('not in cache');
         }
       } catch (error) {
         console.error(error);
+        return error
       }
       
     
-    }
-    if (x === null || x === undefined) {
-      await page.click("[href*='#gounlimited']");
-
-      dom = new JSDOM(await page.content());
-      document = dom.window.document;
-      // x = document.querySelector("div#videowrapper_gounlimited > iframe");
-      let gounl = BASE_URL+document.querySelector("div#videowrapper_gounlimited > iframe").src;
-      await page.goto(gounl)
-      await page.waitFor(100)
-      dom = new JSDOM(await page.content());
-      document = dom.window.document;
-      x = document.querySelector("#vjsplayer_html5_api")
-      await page.screenshot({ path: "screnshot.png" });
     }
    
     let videoURL = x.getAttribute("src"); //document.querySelector("body > div.ui-page.ui-page-theme-a.ui-page-active > div.main.ui-content > div:nth-child(3) > div > div > iframe").attributes.getNamedItem("src").textContent
@@ -89,6 +102,9 @@ console.log('not in cache');
   console.log(`found ${url} in cache ${JSON.stringify(cache[url])}`);
 
   return cache[url];
+}catch (error){
+  return error
+}
 };
 
 module.exports.getVideo = (req, res) => {
@@ -96,12 +112,18 @@ module.exports.getVideo = (req, res) => {
   cors(req, res, async () => {
     let url = req.body.episodeURL.replace("https://", "");
     console.log("getting episode: " + url);
+    console.time(`searching for: ${url}`)
 
     getVideoUrl(url)
-      .then(x => {
-        return res.json({ msg: "Success", video: x.src });
+      .then(video => {
+        console.timeEnd(`searching for: ${url}`)
+
+        console.log(video)
+        return res.json({ msg: "Success", video: video.src });
       })
       .catch(x => {
+        console.timeEnd(`searching for: ${url}`)
+
         res.status(400).json({ ers: "You got an error", error: x });
       });
   });
