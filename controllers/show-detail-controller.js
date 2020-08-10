@@ -1,4 +1,3 @@
-
 /* eslint-disable no-eq-null */
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
@@ -9,52 +8,58 @@ const {
   SHOW_DETAIL_SUBTITLE_SELECTOR
 } = require("../constants");
 const { Episode } = require("../models/Episode");
+const Datastore = require("nedb");
 
-let showCache = { episodes: [] };
-var counter = 0;
-let trackedUrl = ""
+const db = new Datastore("episode_database.db");
+
+db.loadDatabase();
+
 const getEpisodes = async url => {
   console.log(`Getting episodes for show: ${url} \n`);
-  counter++;
-  if (counter > 100000) {
-    showCache.episodes = [];
-  }
-  if (trackedUrl !== url) {
-      trackedUrl = url
-    const res = await instance.get(url);
 
-    const html = res.data;
-    // console.log(html);
+  trackedUrl = url;
+  const res = await instance.get(url);
 
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
-    let episodesArr = Array.from(
-      document.querySelectorAll(SHOW_DETAIL_EPISODES_SELECTOR)
-    );
+  const html = res.data;
+  // console.log(html);
 
-    let episodes = episodesArr.map(ep => {
-      let title = ep.getAttribute("title");
-      let subtitle = getTextContent(ep, SHOW_DETAIL_SUBTITLE_SELECTOR);
-      let link =BASE_URL+ep.getAttribute("href");
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+  let episodesArr = Array.from(
+    document.querySelectorAll(SHOW_DETAIL_EPISODES_SELECTOR)
+  );
 
-      return new Episode(title, subtitle, link);
-    });
-    showCache.episodes = episodes;
-    return episodes;
-  }
-  return showCache.episodes;
+  let episodes = episodesArr.map(ep => {
+    let title = ep.getAttribute("title");
+    let subtitle = getTextContent(ep, SHOW_DETAIL_SUBTITLE_SELECTOR);
+    let link = BASE_URL + ep.getAttribute("href");
+
+    return new Episode(title, subtitle, link);
+  });
+  db.insert({ _id: url, episodes });
+  return episodes;
 };
-
 
 const getTextContent = (doc, selector) => select(doc, selector).textContent;
 
-
 const select = (doc, selector) => doc.querySelector(selector);
+
 const getShowEpisodes = async (req, res) => {
-let {show} = req.query
-  let episodes = await Promise.all([getEpisodes(show)]);
-  let allEpisodes = episodes[0];
-  res.json(allEpisodes );
+  let { show } = req.query;
+  db.findOne({ _id: show }, async (err, doc) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json(err);
+    }
+    if (!doc) {
+      let episodes = await Promise.all([getEpisodes(show)]);
+      let allEpisodes = episodes[0];
+      res.json(allEpisodes);
+    } else {
+        console.log(JSON.stringify(doc.episodes));
+      res.json(doc.episodes);
+    }
+  });
 };
 
 module.exports = {
