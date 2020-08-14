@@ -67,6 +67,9 @@ const getVideoUrl = async url => {
           if (
             document.querySelector(
               "#videowrapper_gstore > div > div.plyr__controls > div.plyr__controls__item.plyr__time--duration.plyr__time"
+            ) !== null ||
+            document.querySelector(
+              "#videowrapper_gstore > div > div.plyr__controls > div.plyr__controls__item.plyr__time--duration.plyr__time"
             ).textContent === "00:00"
           ) {
             await page.click("[href*='#gounlimited']");
