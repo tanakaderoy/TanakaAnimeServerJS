@@ -1,6 +1,6 @@
 const { Video } = require("../models/Video");
 const { JSDOM } = require("jsdom");
-const { BASE_URL, DATABASE_NAME } = require("../constants");
+const { BASE_URL, DATABASE_NAME, REGULAR_VIDEO_SELECTOR, GSTORE_SELECTOR } = require("../constants");
 const puppeteer = require("puppeteer");
 const cors = require("cors")({ origin: true });
 const Datastore = require("nedb");
@@ -22,17 +22,18 @@ const getVideoUrl = async url => {
 
       let html = await page.content();
 
+      await page.screenshot({ path: "screnshot.png" });
 
       let dom = new JSDOM(html);
       let document = dom.window.document;
 
       let x = document.querySelector(
-        "#videowrapper_gvideo > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
+        REGULAR_VIDEO_SELECTOR
       );
       console.log("x should go to Video \n", x);
       if (x === null || x === undefined) {
         x = document.querySelector(
-          "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
+          GSTORE_SELECTOR
         );
       }
 
@@ -101,7 +102,7 @@ const getVideoUrl = async url => {
       // await page.screenshot({path: 'screnshot.png'});
       await browser.close();
       let vid = new Video(BASE_URL + videoURL);
-      vid.src = vid.src.replace("https://animedao.comhttps://", "https://");
+      vid.src = vid.src.replace("https://animetake.tvhttps://", "https://");
       db.insert({ src: vid.src, _id: url });
       return vid;
   } catch (error) {

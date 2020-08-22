@@ -32,11 +32,11 @@ const getTrending = async url => {
     let showsArr = Array.from(
       document.querySelectorAll(LATEST_EPISODES_SELECTOR)
     );
-    showsArr.length = 100
+    // showsArr.length = 9;
     let shows = showsArr.map(show => {
       let img = BASE_URL + getDataSrcText(show, IMG_SELECTOR);
       let showURL = BASE_URL + getHref(show, SHOW_URL_SELEECTOR);
-      let name = getTextContent(show, SHOW_NAME_SELECTOR).trim();
+      let name = getTitle(show, SHOW_NAME_SELECTOR).trim();
       let currentEpUrl = BASE_URL + getHref(show, CURRENT_EPISODE_URL_SELECTOR);
       let currentEp =
         getTextContent(show, CURRENT_EPISODE_NAME_SELECTOR)
@@ -64,6 +64,9 @@ const getHref = (doc, selector) =>
 
 const getTextContent = (doc, selector) =>
   select(doc, selector).textContent;
+
+const getTitle = (doc, selector) =>
+  select(doc,selector).title;
 
 const getSrcText = (doc, selector) =>
   select(doc, selector).attributes.getNamedItem("src").textContent;

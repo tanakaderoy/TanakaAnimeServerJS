@@ -27,15 +27,15 @@ const getSearchResults = async query => {
 
     let results = Array.from(
       document.querySelectorAll(
-        "div [class='col-xs-12 col-sm-6 col-md-6 col-lg-4']"
+        "div [class='col-xs-6 col-sm-3 col-md-2 animelist_poster']"
       )
     );
     let shows = results.map(r => {
-      let poster = BASE_URL+r.querySelector("center > img").getAttribute("data-src");
-      let releaseYear = r.querySelector("div [class='col-xs-8'] > span > b").textContent;
-      let subtitle = r.querySelector("div.ongoingtitle > h4  > small")
-        .textContent;
-      let title = r.querySelector("div.ongoingtitle > h4 > b").textContent;
+      let poster = BASE_URL+r.querySelector("div.thumbnail > a > img").getAttribute("data-src");
+      // let releaseYear = r.querySelector("div [class='col-xs-8'] > span > b").textContent;
+      let releaseYear = "";
+      let subtitle = ""//r.querySelector("div.ongoingtitle > h4  > small").textContent;
+      let title = r.querySelector("div.animelist_poster_caption > center").textContent;
       let link = BASE_URL+r.querySelector("a").getAttribute("href");
       return new SearchResult(poster, releaseYear, subtitle, title, link);
     });
