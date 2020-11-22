@@ -1,8 +1,9 @@
 /* eslint-disable no-eq-null */
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const {HomePageShow} = require("../models/HomePageShow");
+const { HomePageShow } = require("../models/HomePageShow");
 const { instance } = require("../api/axios");
+const { getHomePageShowsSample } = require("../utils/util");
 const {
   LATEST_EPISODES_SELECTOR,
   IMG_SELECTOR,
@@ -62,27 +63,24 @@ const getTrending = async url => {
 const getHref = (doc, selector) =>
   select(doc, selector).attributes.getNamedItem("href").textContent;
 
-const getTextContent = (doc, selector) =>
-  select(doc, selector).textContent;
+const getTextContent = (doc, selector) => select(doc, selector).textContent;
 
-const getTitle = (doc, selector) =>
-  select(doc,selector).title;
+const getTitle = (doc, selector) => select(doc, selector).title;
 
 const getSrcText = (doc, selector) =>
   select(doc, selector).attributes.getNamedItem("src").textContent;
 const getDataSrcText = (doc, selector) =>
   select(doc, selector).attributes.getNamedItem("data-src").textContent;
 
-const select = (doc, selector) =>
-  doc.querySelector(selector);
-  const getHomePageShows = async (req, res) => {
-    let shows = await Promise.all([getTrending(BASE_URL)]);
-    let latestShows = shows[0];
-    let topShow = latestShows[0]
-    console.log(topShow)
-    res.json({ latestShows });
-  };
-  
-  module.exports = {
+const select = (doc, selector) => doc.querySelector(selector);
+const getHomePageShows = async (req, res) => {
+  // let shows = await Promise.all([getTrending(BASE_URL)]);
+  // let latestShows = shows[0];
+  // let topShow = latestShows[0];
+  // console.log(topShow);
+  res.json({ latestShows: getHomePageShowsSample() });
+};
+
+module.exports = {
   getHomePageShows
-  }
+};

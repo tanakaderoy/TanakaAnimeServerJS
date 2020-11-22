@@ -36,7 +36,7 @@ const getEpisodes = async url => {
 
     return new Episode(title, subtitle, link);
   });
-  db.insert({ _id: url, episodes });
+  // db.insert({ _id: url, episodes });
   return episodes;
 };
 
@@ -46,20 +46,29 @@ const select = (doc, selector) => doc.querySelector(selector);
 
 const getShowEpisodes = async (req, res) => {
   let { show } = req.query;
-  db.findOne({ _id: show }, async (err, doc) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json(err);
-    }
-    if (!doc) {
-      let episodes = await Promise.all([getEpisodes(show)]);
-      let allEpisodes = episodes[0];
-      res.json(allEpisodes);
-    } else {
-        console.log(JSON.stringify(doc.episodes));
-      res.json(doc.episodes);
-    }
-  });
+  // db.findOne({ _id: show }, async (err, doc) => {
+  //   if (err) {
+  //     console.error(err);
+  //     res.status(500).json(err);
+  //   }
+  //   if (!doc) {
+  //     let episodes = await Promise.all([getEpisodes(show)]);
+  //     let allEpisodes = episodes[0];
+  //     res.json(allEpisodes);
+  //   } else {
+  //       console.log(JSON.stringify(doc.episodes));
+  //     res.json(doc.episodes);
+  //   }
+  // });
+  // let episodes = await Promise.all([getEpisodes(show)]);
+  // let allEpisodes = episodes[0];
+  let allEpisodes = [];
+  for (let i = 0; i < 20; i++) {
+    allEpisodes.push(
+      new Episode(`Episode ${i}`, "Wowsers wish it still worked :sadFace:", "")
+    );
+  }
+  res.json(allEpisodes);
 };
 
 module.exports = {

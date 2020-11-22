@@ -2,3 +2,4 @@ node_modules/
 watch_database.db
 screnshot.png
 episode_database.db
+.env
