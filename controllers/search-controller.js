@@ -1,56 +1,57 @@
 /* eslint-disable no-eq-null */
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const { HomePageShow } = require("../models/HomePageShow");
-const { instance } = require("../api/axios");
 const {
-  LATEST_EPISODES_SELECTOR,
-  IMG_SELECTOR,
-  SHOW_NAME_SELECTOR,
-  BASE_URL,
-  SHOW_URL_SELEECTOR,
-  CURRENT_EPISODE_URL_SELECTOR,
-  CURRENT_EPISODE_NAME_SELECTOR
+  constants: { BASE_URL },
+  cleanupName
 } = require("../constants");
 const { SearchResult } = require("../models/SearchResult");
-
-let showCache = { shows: [] };
-var counter = 0;
-let trackedUel  = ""
-
+const puppeteer = require("puppeteer");
+const { Util } = require("../utils/util");
+let cache = {};
 const getSearchResults = async query => {
-      trackedUel = query
-    const res = await instance.get(BASE_URL + "/search/?key=" + query);
-    const html = res.data;
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
+  console.log(query);
+  if (!cache[query]) {
+    try {
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        headless: true
+      });
+      const page = await browser.newPage();
 
-    let results = Array.from(
-      document.querySelectorAll(
-        "div [class='col-xs-6 col-sm-3 col-md-2 animelist_poster']"
-      )
-    );
-    let shows = results.map(r => {
-      let poster = BASE_URL+r.querySelector("div.thumbnail > a > img").getAttribute("data-src");
-      // let releaseYear = r.querySelector("div [class='col-xs-8'] > span > b").textContent;
-      let releaseYear = "";
-      let subtitle = ""//r.querySelector("div.ongoingtitle > h4  > small").textContent;
-      let title = r.querySelector("div.animelist_poster_caption > center").textContent;
-      let link = BASE_URL+r.querySelector("a").getAttribute("href");
-      return new SearchResult(poster, releaseYear, subtitle, title, link);
-    });
-    showCache.shows = shows;
-    return showCache.shows;
+      page.goto(BASE_URL + `?q=${query}&sengine=4ani`);
+      await page.waitForSelector("li.mainsource", { timeout: 2000 });
+      let html = await page.content();
+      await page.screenshot({ path: "screnshot.png" });
+
+      let dom = new JSDOM(html);
+      let document = dom.window.document;
+
+      let results = Array.from(document.querySelectorAll("li.mainsource"));
+      let shows = results.map(r => {
+        let poster = Util.getSrc(r, "img.resultimg");
+        let releaseYear = "";
+        let subtitle = Util.getTextContent(r, "p.infotext"); //r.querySelector("div.ongoingtitle > h4  > small").textContent;
+        let title = Util.getTextContent(r, "p.name");
+        let link = cleanupName(title);
+        return new SearchResult(poster, releaseYear, subtitle, title, link);
+      });
+      await browser.close();
+      cache[query] = shows;
+      return shows;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  }
+  return cache[query];
 };
 
 const peformSearch = async (req, res) => {
-    
   let { query } = req.query;
-  showCache.shows = query === trackedUel ? [] : showCache.shows
-  let shows = await Promise.all([getSearchResults(query)]);
-  let searchResults = shows[0];
+  let searchResults = await getSearchResults(query);
   console.log(searchResults);
-  res.json(searchResults );
+  res.json(searchResults);
 };
 
 module.exports = {

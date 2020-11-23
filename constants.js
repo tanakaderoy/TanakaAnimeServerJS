@@ -1,4 +1,7 @@
-module.exports = {
+const constants = {
+  TVMAZE_BASE: "http://api.tvmaze.com/",
+  TVMAZE: "http://api.tvmaze.com",
+  TVMAZE_SHOW_SEARCH_ENDPOINT: "singlesearch/shows",
   LATEST_EPISODES_SELECTOR: "div.latestep_wrapper",
   IMG_SELECTOR: "div[class='col-xs-4 col-sm-2 latestep_image'] > a > img",
   SHOW_NAME_SELECTOR: "div[class='pull-left parent_container'] > a",
@@ -13,5 +16,30 @@ module.exports = {
   REGULAR_VIDEO_SELECTOR:
     "#videowrapper_gvideo > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source",
   GSTORE_SELECTOR:
-    "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source",
+    "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
+};
+const getShowSearchUrl = (query = "") => {
+  return `${constants.TVMAZE_BASE}singlesearch/shows?q=${query}&embed=episodes`;
+};
+const getShowSearchEndpoint = (name = "") => {
+  return `singlesearch/shows?q=${query}&embed=episodes`;
+};
+const cleanupName = (name = "") => {
+  let newName = name.replace("TV", "");
+  newName = newName.replace(/(\(\w*\)\s*)/g, "");
+  newName = newName.replace(/(\dnd|\drd|\dth) Season/g, "");
+  newName = newName.replace(/\(\d{0,4}\)/g, "");
+  return newName;
+};
+
+const cleanupLink = (name = "") => {
+  return name.replace(/\s+/g, "-").replace(":", "");
+};
+
+module.exports = {
+  constants,
+  getShowSearchUrl,
+  getShowSearchEndpoint,
+  cleanupName,
+  cleanupLink
 };

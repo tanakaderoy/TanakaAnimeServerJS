@@ -1,10 +1,13 @@
 const { Video } = require("../models/Video");
 const { JSDOM } = require("jsdom");
+const { Util } = require("../Utils/util");
 const {
-  BASE_URL,
-  DATABASE_NAME,
-  REGULAR_VIDEO_SELECTOR,
-  GSTORE_SELECTOR,
+  constants: {
+    BASE_URL,
+    DATABASE_NAME,
+    REGULAR_VIDEO_SELECTOR,
+    GSTORE_SELECTOR
+  }
 } = require("../constants");
 const puppeteer = require("puppeteer");
 const cors = require("cors")({ origin: true });
@@ -14,12 +17,12 @@ const db = new Datastore(DATABASE_NAME);
 
 db.loadDatabase();
 
-const getVideoUrl = async (url) => {
+const getVideoUrl = async url => {
   try {
     console.log("not in cache");
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      headless: false,
+      headless: true
     });
     const page = await browser.newPage();
     await page.goto("https://" + url.replace('"', ""));
@@ -31,9 +34,11 @@ const getVideoUrl = async (url) => {
     let dom = new JSDOM(html);
     let document = dom.window.document;
 
-    let x = document.querySelector("div.plyr__video-wrapper > video > source");
+    let videoURL = Util.getSrc(
+      document,
+      "div.plyr__video-wrapper > video > source"
+    );
 
-    let videoURL = x.src; //document.querySelector("body > div.ui-page.ui-page-theme-a.ui-page-active > div.main.ui-content > div:nth-child(3) > div > div > iframe").attributes.getNamedItem("src").textContent
     console.log(videoURL);
     console.log("========================================");
     console.log(BASE_URL + videoURL);
@@ -63,12 +68,12 @@ module.exports.getVideo = (req, res) => {
       }
       if (!doc) {
         getVideoUrl(url)
-          .then((video) => {
+          .then(video => {
             console.timeEnd(`searching for: ${url}`);
             console.log(video);
             return res.json({ msg: "Success", video: video.src });
           })
-          .catch((x) => {
+          .catch(x => {
             console.timeEnd(`searching for: ${url}`);
             res.status(400).json({ ers: "You got an error", error: x });
           });

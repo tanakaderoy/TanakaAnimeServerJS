@@ -1,65 +1,74 @@
 /* eslint-disable no-eq-null */
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const { instance } = require("../api/axios");
+const { getTVMAZEShowEpisodes } = require("../api/axios");
 const {
-  BASE_URL,
-  SHOW_DETAIL_EPISODES_SELECTOR,
-  SHOW_DETAIL_SUBTITLE_SELECTOR
+  constants: { BASE_URL },
+  cleanupLink
 } = require("../constants");
+const puppeteer = require("puppeteer");
+
 const { Episode } = require("../models/Episode");
-const Datastore = require("nedb");
 
-const db = new Datastore("episode_database.db");
+const getEpisodes = async name => {
+  console.log(`Getting episodes for show: ${name} \n`);
 
-db.loadDatabase();
+  let json = await getTVMAZEShowEpisodes(name);
+  if (json) {
+    return getEpisodesFromJSON(json, name);
+  } else {
+    try {
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        headless: true
+      });
+      const page = await browser.newPage();
+      await page.setUserAgent("UA-TEST");
+      name = cleanupLink(name);
+      console.log(`The name is: \n ${name}`);
+      page.goto(`${BASE_URL}v4/4-${name}`, {
+        waitUntil: "domcontentloaded"
+      });
+      await Promise.all([page.waitForNavigation()]);
+      let html = await page.content();
+      const dom = new JSDOM(html);
+      const document = dom.window.document;
+      let epNo = parseInt(getTextContent(document, "span#epsavailable"));
+      let eps = [];
+      for (let i = 1; i <= epNo; i++) {
+        let title = `Ep: ${i}`;
+        let subtitle = `${i}`;
+        name = name.replace(/\s+/g, "-");
+        let link = `${BASE_URL}v4/4-${name}/ep${i}`;
+        eps.push(new Episode(title, subtitle, link));
+      }
 
-const getEpisodes = async url => {
-  console.log(`Getting episodes for show: ${url} \n`);
-
-  trackedUrl = url;
-  const res = await instance.get(url);
-
-  const html = res.data;
-  // console.log(html);
-
-  const dom = new JSDOM(html);
-  const document = dom.window.document;
-  let episodesArr = Array.from(
-    document.querySelectorAll(SHOW_DETAIL_EPISODES_SELECTOR)
-  );
-
-  let episodes = episodesArr.map(ep => {
-    let title = ep.getAttribute("title");
-    let subtitle = getTextContent(ep, SHOW_DETAIL_SUBTITLE_SELECTOR);
-    let link = BASE_URL + ep.getAttribute("href");
-
-    return new Episode(title, subtitle, link);
-  });
-  db.insert({ _id: url, episodes });
-  return episodes;
+      return eps;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  }
 };
-
-const getTextContent = (doc, selector) => select(doc, selector).textContent;
-
-const select = (doc, selector) => doc.querySelector(selector);
 
 const getShowEpisodes = async (req, res) => {
   let { show } = req.query;
-  db.findOne({ _id: show }, async (err, doc) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json(err);
-    }
-    if (!doc) {
-      let episodes = await Promise.all([getEpisodes(show)]);
-      let allEpisodes = episodes[0];
-      res.json(allEpisodes);
-    } else {
-        console.log(JSON.stringify(doc.episodes));
-      res.json(doc.episodes);
-    }
+  let episodes = await Promise.all([getEpisodes(show)]);
+  let allEpisodes = episodes[0];
+  res.json(allEpisodes);
+};
+
+const getEpisodesFromJSON = (json, name) => {
+  let episodesArr = json["_embedded"]["episodes"];
+
+  let episodes = episodesArr.map(ep => {
+    let title = ep["name"];
+    let subtitle = `${ep["number"]}`;
+    let link = `${BASE_URL}v4/4-${cleanupLink(name)}/ep${ep["number"]}`;
+
+    return new Episode(title, subtitle, link);
   });
+  return episodes;
 };
 
 module.exports = {
