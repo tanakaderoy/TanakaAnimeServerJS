@@ -7,7 +7,8 @@ const { instance } = require("../api/axios");
 const puppeteer = require("puppeteer");
 const {
   constants: { BASE_URL },
-  cleanupName
+  cleanupName,
+  puppeteerOptions
 } = require("../constants");
 let showCache = { shows: [] };
 var counter = 0;
@@ -19,10 +20,7 @@ const getTrending = async url => {
   }
   if (showCache.shows.length <= 0) {
     try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        headless: true
-      });
+      const browser = await puppeteer.launch(puppeteerOptions);
       const page = await browser.newPage();
       page.setDefaultNavigationTimeout(90000);
 

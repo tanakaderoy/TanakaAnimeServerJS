@@ -2,12 +2,8 @@ const { Video } = require("../models/Video");
 const { JSDOM } = require("jsdom");
 const { Util } = require("../Utils/util");
 const {
-  constants: {
-    BASE_URL,
-    DATABASE_NAME,
-    REGULAR_VIDEO_SELECTOR,
-    GSTORE_SELECTOR
-  }
+  constants: { BASE_URL, DATABASE_NAME },
+  puppeteerOptions
 } = require("../constants");
 const puppeteer = require("puppeteer");
 const cors = require("cors")({ origin: true });
@@ -20,10 +16,7 @@ db.loadDatabase();
 const getVideoUrl = async url => {
   try {
     console.log("not in cache");
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      headless: true
-    });
+    const browser = await puppeteer.launch(puppeteerOptions);
     const page = await browser.newPage();
     await page.goto("https://" + url.replace('"', ""));
 

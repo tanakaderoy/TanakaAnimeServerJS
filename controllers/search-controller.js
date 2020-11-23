@@ -3,7 +3,8 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const {
   constants: { BASE_URL },
-  cleanupName
+  cleanupName,
+  puppeteerOptions
 } = require("../constants");
 const { SearchResult } = require("../models/SearchResult");
 const puppeteer = require("puppeteer");
@@ -13,10 +14,7 @@ const getSearchResults = async query => {
   console.log(query);
   if (!cache[query]) {
     try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        headless: true
-      });
+      const browser = await puppeteer.launch(puppeteerOptions);
       const page = await browser.newPage();
 
       page.goto(BASE_URL + `?q=${query}&sengine=4ani`);

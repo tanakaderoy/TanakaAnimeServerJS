@@ -31,7 +31,10 @@ const cleanupName = (name = "") => {
   newName = newName.replace(/\(\d{0,4}\)/g, "");
   return newName;
 };
-
+const puppeteerOptions = {
+  args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  headless: true
+};
 const cleanupLink = (name = "") => {
   return name.replace(/\s+/g, "-").replace(":", "");
 };
@@ -41,5 +44,6 @@ module.exports = {
   getShowSearchUrl,
   getShowSearchEndpoint,
   cleanupName,
-  cleanupLink
+  cleanupLink,
+  puppeteerOptions
 };

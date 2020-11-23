@@ -4,6 +4,7 @@ const { JSDOM } = jsdom;
 const { getTVMAZEShowEpisodes } = require("../api/axios");
 const {
   constants: { BASE_URL },
+  puppeteerOptions,
   cleanupLink
 } = require("../constants");
 const puppeteer = require("puppeteer");
@@ -18,10 +19,7 @@ const getEpisodes = async name => {
     return getEpisodesFromJSON(json, name);
   } else {
     try {
-      const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        headless: true
-      });
+      const browser = await puppeteer.launch(puppeteerOptions);
       const page = await browser.newPage();
       await page.setUserAgent("UA-TEST");
       name = cleanupLink(name);
