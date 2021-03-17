@@ -8,19 +8,22 @@ const puppeteer = require("puppeteer");
 const {
   constants: { BASE_URL },
   cleanupName,
-  puppeteerOptions
+  puppeteerOptions,
+  cleanupLink,
 } = require("../constants");
 let showCache = { shows: [] };
 var counter = 0;
-const getTrending = async url => {
+const getTrending = async (url) => {
   console.log(`Scraping: ${url} \n`);
   counter++;
   if (counter > 100000) {
     showCache.shows = [];
   }
   if (showCache.shows.length <= 0) {
+    const browser = await puppeteer.launch({
+      ...puppeteerOptions,
+    });
     try {
-      const browser = await puppeteer.launch(puppeteerOptions);
       const page = await browser.newPage();
       page.setDefaultNavigationTimeout(90000);
 
@@ -30,10 +33,10 @@ const getTrending = async url => {
       page.goto(url, { waitUntil: "domcontentloaded" });
       await Promise.all([page.waitForNavigation()]);
       const loadMore = async () => {
-        await page.evaluate(_ => {
-          loadmoreseasonal();
-          loadmoreseasonal();
-          loadmoreseasonal();
+        await page.evaluate((_) => {
+          loadmorenewep();
+          loadmorenewep();
+          loadmorenewep();
           document.querySelector("div#loadmorelist").click();
         });
         await page.waitFor(100);
@@ -52,13 +55,16 @@ const getTrending = async url => {
       return shows;
     } catch (error) {
       console.error(error);
+      await browser.close();
       return await getHomePageShowsStaticHtml(url);
+    } finally {
+      await browser.close();
     }
   }
   return showCache.shows;
 };
 
-const getHomePageShowsStaticHtml = async url => {
+const getHomePageShowsStaticHtml = async (url) => {
   const res = await instance.get(url);
   const html = res.data;
   const dom = new JSDOM(html);
@@ -74,24 +80,26 @@ const getHomePageShows = async (req, res) => {
   res.json({ latestShows });
 };
 
-const getHomePageShowArrFromHtmlEltArr = showsArr => {
-  return showsArr.map(ep => {
-    let img = Util.getSrc(ep, "div.searchimg > a > img");
-    let name = Util.getTitle(ep, "div.searchimg > a");
-    let currentEpUrl =
-      BASE_URL + Util.getHref(ep, "div.searchimg > a").replace("/v1/", "v4/4-");
+const getHomePageShowArrFromHtmlEltArr = (showsArr) => {
+  return showsArr
+    .map((ep) => {
+      let img = Util.getSrc(ep, "img.resultimg");
+      let name = Util.getTextContent(ep, "p.name");
+      let currentEpUrl =
+        BASE_URL + cleanupLink(Util.getHref(ep, "a").replace("/v1/", "v4/4-"));
 
-    let currentEp = Util.getTextContent(ep, "p.infotext");
-    return new HomePageShow(
-      name,
-      img,
-      cleanupName(name),
-      currentEpUrl,
-      currentEp
-    );
-  });
+      let currentEp = Util.getTextContent(ep, "p.infotext");
+      return new HomePageShow(
+        name,
+        img,
+        cleanupName(name),
+        currentEpUrl,
+        currentEp
+      );
+    })
+    .filter((show) => !show.title.includes("[Dub]"));
 };
 
 module.exports = {
-  getHomePageShows
+  getHomePageShows,
 };

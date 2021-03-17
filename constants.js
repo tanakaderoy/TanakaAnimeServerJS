@@ -16,7 +16,7 @@ const constants = {
   REGULAR_VIDEO_SELECTOR:
     "#videowrapper_gvideo > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source",
   GSTORE_SELECTOR:
-    "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source"
+    "#videowrapper_gstore > div > div.plyr__video-wrapper.plyr__video-wrapper--fixed-ratio > video > source",
 };
 const getShowSearchUrl = (query = "") => {
   return `${constants.TVMAZE_BASE}singlesearch/shows?q=${query}&embed=episodes`;
@@ -32,11 +32,22 @@ const cleanupName = (name = "") => {
   return newName;
 };
 const puppeteerOptions = {
-  args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  headless: true
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--single-process",
+    "--no-zygote",
+  ],
+  headless: true,
 };
 const cleanupLink = (name = "") => {
-  return name.replace(/\s+/g, "-").replace(":", "");
+  return name
+    .replace(/\s+/g, "-")
+    .replace(":", "")
+    .replace("-(TV)", "")
+    .replace("-tv", "")
+    .replace(/\!+/g, "")
+    .replace(/\(|\)/g, "");
 };
 
 module.exports = {
@@ -45,5 +56,5 @@ module.exports = {
   getShowSearchEndpoint,
   cleanupName,
   cleanupLink,
-  puppeteerOptions
+  puppeteerOptions,
 };

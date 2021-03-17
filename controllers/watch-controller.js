@@ -3,7 +3,7 @@ const { JSDOM } = require("jsdom");
 const { Util } = require("../Utils/util");
 const {
   constants: { BASE_URL, DATABASE_NAME },
-  puppeteerOptions
+  puppeteerOptions,
 } = require("../constants");
 const puppeteer = require("puppeteer");
 const cors = require("cors")({ origin: true });
@@ -13,12 +13,17 @@ const db = new Datastore(DATABASE_NAME);
 
 db.loadDatabase();
 
-const getVideoUrl = async url => {
+const getVideoUrl = async (url) => {
+  const browser = await puppeteer.launch({
+    ...puppeteerOptions,
+    headless: true,
+  });
   try {
     console.log("not in cache");
-    const browser = await puppeteer.launch(puppeteerOptions);
+
     const page = await browser.newPage();
-    await page.goto("https://" + url.replace('"', ""));
+    await page.goto("https://" + url.replace("-/", "/").replace('"', ""));
+    await page.waitForSelector("div.plyr__video-wrapper > video > source");
 
     let html = await page.content();
 
@@ -43,7 +48,13 @@ const getVideoUrl = async url => {
     db.insert({ src: vid.src, _id: url });
     return vid;
   } catch (error) {
+    console.log("CLosing Browser due to error");
+    await browser.close();
     return error;
+  } finally {
+    console.log("CLosing Browser");
+
+    await browser.close();
   }
 };
 
@@ -51,7 +62,10 @@ module.exports.getVideo = (req, res) => {
   res.set("Cache-Control", "public, max-age=300, s-maxage=600");
   cors(req, res, async () => {
     console.log(req.body);
-    let url = req.body.episodeURL.replace("https://", "");
+    let url = req.body.episodeURL
+      .toLowerCase()
+      .replace("https://", "")
+      .replace("kaisen", "kaisen-tv");
     console.log("getting episode: " + url);
     console.time(`searching for: ${url}`);
     db.findOne({ _id: url }, (err, doc) => {
@@ -61,12 +75,12 @@ module.exports.getVideo = (req, res) => {
       }
       if (!doc) {
         getVideoUrl(url)
-          .then(video => {
+          .then((video) => {
             console.timeEnd(`searching for: ${url}`);
             console.log(video);
             return res.json({ msg: "Success", video: video.src });
           })
-          .catch(x => {
+          .catch((x) => {
             console.timeEnd(`searching for: ${url}`);
             res.status(400).json({ ers: "You got an error", error: x });
           });
