@@ -1,19 +1,19 @@
 /* eslint-disable no-eq-null */
-const jsdom = require("jsdom");
+const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
-const { HomePageShow } = require("../models/HomePageShow");
-const { Util } = require("../Utils/util");
-const { instance } = require("../api/axios");
-const puppeteer = require("puppeteer");
+const { HomePageShow } = require('../models/HomePageShow');
+const { Util } = require('../util/util');
+const { instance } = require('../api/axios');
+const puppeteer = require('puppeteer');
 const {
   constants: { BASE_URL },
   cleanupName,
   puppeteerOptions,
-  cleanupLink,
-} = require("../constants");
+  cleanupLink
+} = require('../constants');
 let showCache = { shows: [] };
 var counter = 0;
-const getTrending = async (url) => {
+const getTrending = async url => {
   console.log(`Scraping: ${url} \n`);
   counter++;
   if (counter > 100000) {
@@ -21,7 +21,7 @@ const getTrending = async (url) => {
   }
   if (showCache.shows.length <= 0) {
     const browser = await puppeteer.launch({
-      ...puppeteerOptions,
+      ...puppeteerOptions
     });
     try {
       const page = await browser.newPage();
@@ -29,15 +29,15 @@ const getTrending = async (url) => {
 
       // await page.setViewport({ width, height });
 
-      await page.setUserAgent("UA-TEST");
-      page.goto(url, { waitUntil: "domcontentloaded" });
+      await page.setUserAgent('UA-TEST');
+      page.goto(url, { waitUntil: 'domcontentloaded' });
       await Promise.all([page.waitForNavigation()]);
       const loadMore = async () => {
-        await page.evaluate((_) => {
+        await page.evaluate(_ => {
           loadmorenewep();
           loadmorenewep();
           loadmorenewep();
-          document.querySelector("div#loadmorelist").click();
+          document.querySelector('div#loadmorelist').click();
         });
         await page.waitFor(100);
       };
@@ -48,7 +48,7 @@ const getTrending = async (url) => {
       const dom = new JSDOM(html);
       const document = dom.window.document;
       let showsArr = Array.from(
-        document.querySelectorAll("ul.searchresult > li")
+        document.querySelectorAll('ul.searchresult > li')
       );
       let shows = getHomePageShowArrFromHtmlEltArr(showsArr);
       showCache.shows = shows;
@@ -64,12 +64,12 @@ const getTrending = async (url) => {
   return showCache.shows;
 };
 
-const getHomePageShowsStaticHtml = async (url) => {
+const getHomePageShowsStaticHtml = async url => {
   const res = await instance.get(url);
   const html = res.data;
   const dom = new JSDOM(html);
   const document = dom.window.document;
-  let showsArr = Array.from(document.querySelectorAll("ul.searchresult > li"));
+  let showsArr = Array.from(document.querySelectorAll('ul.searchresult > li'));
   let shows = getHomePageShowArrFromHtmlEltArr(showsArr);
   showCache.shows = shows;
   return shows;
@@ -80,15 +80,15 @@ const getHomePageShows = async (req, res) => {
   res.json({ latestShows });
 };
 
-const getHomePageShowArrFromHtmlEltArr = (showsArr) => {
+const getHomePageShowArrFromHtmlEltArr = showsArr => {
   return showsArr
-    .map((ep) => {
-      let img = Util.getSrc(ep, "img.resultimg");
-      let name = Util.getTextContent(ep, "p.name");
+    .map(ep => {
+      let img = Util.getSrc(ep, 'img.resultimg');
+      let name = Util.getTextContent(ep, 'p.name');
       let currentEpUrl =
-        BASE_URL + cleanupLink(Util.getHref(ep, "a").replace("/v1/", "v4/4-"));
+        BASE_URL + cleanupLink(Util.getHref(ep, 'a').replace('/v1/', 'v4/4-'));
 
-      let currentEp = Util.getTextContent(ep, "p.infotext");
+      let currentEp = Util.getTextContent(ep, 'p.infotext');
       return new HomePageShow(
         name,
         img,
@@ -97,9 +97,9 @@ const getHomePageShowArrFromHtmlEltArr = (showsArr) => {
         currentEp
       );
     })
-    .filter((show) => !show.title.includes("[Dub]"));
+    .filter(show => !show.title.includes('[Dub]'));
 };
 
 module.exports = {
-  getHomePageShows,
+  getHomePageShows
 };
