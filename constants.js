@@ -44,6 +44,7 @@ const cleanupLink = (name = "") => {
   return name
     .replace(/\s+/g, "-")
     .replace(":", "")
+    .replace(".","")
     .replace("-(TV)", "")
     .replace("-tv", "")
     .replace(/\!+/g, "")
