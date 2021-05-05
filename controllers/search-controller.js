@@ -29,7 +29,7 @@ const getSearchResults = async query => {
       let dom = new JSDOM(html);
       let document = dom.window.document;
 
-      let results = Array.from(document.querySelectorAll('li'));
+      let results = Array.from(document.querySelectorAll('ul.searchresult > li'));
       let shows = results.map(r => {
         let poster = Util.getSrc(r, 'img');
         let releaseYear = '';
